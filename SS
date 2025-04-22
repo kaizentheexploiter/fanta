@@ -1,0 +1,70 @@
+--// CHOLOW ON TOP
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+local Camera = workspace.CurrentCamera
+
+-- Aimbot toggle state
+local aiming = false
+
+--// GUI Setup
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CholowGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local label = Instance.new("TextLabel")
+label.Name = "CholowLabel"
+label.Parent = screenGui
+label.Size = UDim2.new(0, 200, 0, 40)
+label.Position = UDim2.new(0.5, -100, 0, 20)
+label.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+label.TextColor3 = Color3.fromRGB(255, 0, 0)
+label.BorderSizePixel = 0
+label.BackgroundTransparency = 0.3
+label.Font = Enum.Font.FredokaOne
+label.TextSize = 26
+label.Text = "CHOLOW ON TOP"
+label.TextStrokeTransparency = 0.7
+
+-- Right-click activation
+Mouse.Button2Down:Connect(function()
+    aiming = true
+end)
+
+Mouse.Button2Up:Connect(function()
+    aiming = false
+end)
+
+-- Aimbot targeting (HEADSHOT MODE)
+local function getClosestPlayerToCursor()
+    local closestPlayer = nil
+    local shortestDistance = math.huge
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+            local screenPoint, onScreen = Camera:WorldToViewportPoint(player.Character.Head.Position)
+            if onScreen then
+                local distance = (Vector2.new(screenPoint.X, screenPoint.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude
+                if distance < shortestDistance then
+                    shortestDistance = distance
+                    closestPlayer = player
+                end
+            end
+        end
+    end
+
+    return closestPlayer
+end
+
+-- Aimbot loop
+RunService.RenderStepped:Connect(function()
+    if aiming then
+        local target = getClosestPlayerToCursor()
+        if target and target.Character and target.Character:FindFirstChild("Head") then
+            local targetPosition = target.Character.Head.Position
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, targetPosition)
+        end
+    end
+end)
